@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JPG Apps</title>
+<meta name="description" content="Small AI apps by Paul Grayson, in free public beta: PartyLine for X, Quack and Turai.">
+<meta property="og:title" content="JPG Apps">
+<meta property="og:description" content="Small AI apps by Paul Grayson, in free public beta.">
+<style>
+:root { --bg: #0b0f14; --card: #121922; --text: #eef2f6; --muted: #9aa7b4; --accent: #3b82f6; --line: #26313d; --live: #34d399; --soon: #fbbf24; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+header h1 { margin: 0; font-size: 34px; letter-spacing: .01em; }
+header p { margin: 6px 0 0; color: var(--muted); }
+.beta { margin: 24px 0 8px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 15px; }
+.app { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 16px 0; }
+.app h2 { margin: 0; font-size: 23px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.tag { font-size: 13px; font-weight: 600; padding: 1px 10px; border-radius: 99px; border: 1px solid currentColor; }
+.tag.live { color: var(--live); } .tag.soon { color: var(--soon); }
+.app p { margin: 8px 0 0; }
+.app .small { color: var(--muted); font-size: 15px; }
+.buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.btn { display: inline-block; padding: 9px 18px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 16px; }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.secondary { border: 1px solid var(--line); color: var(--text); }
+footer { margin-top: 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>JPG Apps</h1>
+<p>Small AI apps by Paul Grayson, free during the public beta.</p>
+</header>
+
+<p class="beta">These are betas: they may break, change or go offline. Your feedback decides what gets fixed and built next.</p>
+
+<section class="app">
+<h2>PartyLine for X <span class="tag live">Live</span></h2>
+<p>The day's news and debates from X, read aloud twice a day with the original posts beside each story. Every story says whether it's confirmed, disputed or divided.</p>
+<p class="small">Works on phones, computers and in the Tesla browser.</p>
+<div class="buttons">
+<a class="btn primary" href="https://jpaulgrayson.github.io/partyline/">Listen now</a>
+<a class="btn secondary feedback" href="https://docs.google.com/forms/d/e/1FAIpQLSd5HGBNvOHvHGdtysizhQldT6vl61pdbcIP3ju93bJpwewSTw/viewform">Send feedback</a>
+</div>
+</section>
+
+<section class="app">
+<h2>Quack <span class="tag soon">Beta by invitation</span></h2>
+<p>Work together without giving up your AI partner. Bring ChatGPT, Claude, Gemini or Grok into one conversation, with other people and their AIs, and you stay in charge of what each one can see and do.</p>
+<div class="buttons">
+<a class="btn secondary" href="#" aria-disabled="true">Request access (soon)</a>
+</div>
+</section>
+
+<section class="app">
+<h2>Turai <span class="tag soon">Coming soon</span></h2>
+<p>An AI tour guide that narrates where you are as you drive or walk: local history, food, nature and fun facts, with photos and postcards from your trip.</p>
+</section>
+
+<footer>
+<p>Made by Paul Grayson with AI helpers. Independent; not affiliated with X Corp. or any AI company.</p>
+<p><a class="feedback" href="https://docs.google.com/forms/d/e/1FAIpQLSd5HGBNvOHvHGdtysizhQldT6vl61pdbcIP3ju93bJpwewSTw/viewform">Send feedback</a></p>
+</footer>
+</main>
+<script data-goatcounter="https://jpgapps.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
