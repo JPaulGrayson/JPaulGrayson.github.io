@@ -29,7 +29,9 @@ header p { margin: 6px 0 0; color: var(--muted); }
 .player img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .player .scrim { position: absolute; inset: 0; background: linear-gradient(rgba(5,8,12,.6), transparent 30%, transparent 35%, rgba(5,8,12,.92) 75%); }
 .player .label { position: absolute; top: 12px; left: 16px; right: 16px; font-size: 14px; font-weight: 600; }
-.player .info { position: absolute; left: 16px; right: 16px; bottom: 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: center; }
+.player .rail { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.2); }
+.player .fill { display: block; height: 100%; width: 0; background: var(--accent); }
+.player .info { position: absolute; left: 16px; right: 16px; bottom: 14px; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: center; }
 .player .play { grid-row: span 2; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; }
 .player .play svg { width: 30px; height: 30px; fill: #fff; }
 .player:hover .play { filter: brightness(1.15); }
@@ -59,20 +61,21 @@ footer a { color: var(--muted); }
 
 <section class="app">
 <h2>XRadio <span class="tag live">Live</span></h2>
-<a class="player" id="xrPlayer" href="https://jpaulgrayson.github.io/xradio/?play=1" aria-label="Play the latest XRadio show">
+<a class="player" id="xrPlayer" href="https://jpaulgrayson.github.io/xradio/" aria-label="Play the latest XRadio show">
 <img id="xrPhoto" alt="" hidden>
 <span class="scrim"></span>
 <span class="label" id="xrLabel">Latest show</span>
 <span class="info">
-<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+<span class="play"><svg viewBox="0 0 24 24"><path id="xrIcon" d="M8 5v14l11-7z"/></svg></span>
 <span class="head" id="xrHead">Your news, read aloud</span>
 <span class="meta" id="xrMeta">Top stories, debates and culture wars, twice a day</span>
 </span>
+<span class="rail"><span class="fill" id="xrFill"></span></span>
 </a>
 <p>Hands-free news radio for the car. Twice a day, the top stories, debates and culture wars from X, researched and read aloud, plus daily YouTube shows on AI and world conflicts. Photos fill the Tesla screen.</p>
 <p class="small">Works on phones and computers too. At a desk, read along with each story's fact check and original posts.</p>
 <div class="buttons">
-<a class="btn primary" href="https://jpaulgrayson.github.io/xradio/">Listen now</a>
+<a class="btn primary" id="xrFull" href="https://jpaulgrayson.github.io/xradio/">Full player</a>
 <a class="btn secondary" href="https://jpaulgrayson.github.io/partyline/">Read along</a>
 <a class="btn secondary feedback" href="https://docs.google.com/forms/d/e/1FAIpQLSd5HGBNvOHvHGdtysizhQldT6vl61pdbcIP3ju93bJpwewSTw/viewform">Send feedback</a>
 </div>
@@ -108,19 +111,56 @@ footer a { color: var(--muted); }
 </footer>
 </main>
 <script>
-// The XRadio card shows the latest show's opening picture; if this fails it stays a plain play button.
-fetch("/xradio/latest.json", { cache: "no-store" }).then(r => r.json()).then(show => {
-  if (!show) return;
-  const $ = id => document.getElementById(id), c = show.cover;
+// The XRadio card plays the latest show right here: browsers won't start sound on a page you've just opened,
+// so a play button that opened the full player would need a second tap. If anything fails it stays a plain link.
+const audio = new Audio();
+const $ = id => document.getElementById(id);
+const PLAY = "M8 5v14l11-7z", PAUSE = "M6 5h4v14H6zM14 5h4v14h-4z";
+const clock = s => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+const creditOf = c => !c.credit ? "" : c.site ? "From " + c.credit + " on " + c.site : "Photo: " + c.credit + " on X";
+let show, shown;
+
+function picture(url) {
+  if (!url) return;
+  const pic = new Image();
+  pic.onload = () => { $("xrPhoto").src = pic.src; $("xrPhoto").hidden = false; };
+  pic.src = new URL(url, location.origin + "/xradio/").href;
+}
+function remember() {  // the full player picks up from here
+  try { localStorage.setItem("pos:" + show.id, String(audio.currentTime)); } catch (e) {}
+}
+function follow() {
+  const t = audio.currentTime || 0;
+  let i = -1;
+  show.chapters.forEach((c, k) => { if (c.start <= t + 0.05) i = k; });
+  const c = show.chapters[i] || show.cover;
+  if (c !== shown) { shown = c; $("xrHead").textContent = c.headline; picture(c.url); }
+  $("xrMeta").textContent = (i < 0 ? "Opening" : "Story " + (i + 1) + " of " + show.chapters.length) + " · " +
+    clock(t) + " / " + clock(show.duration) + (creditOf(c) ? " · " + creditOf(c) : "");
+  $("xrFill").style.width = (100 * t / show.duration) + "%";
+}
+
+fetch("/xradio/latest.json", { cache: "no-store" }).then(r => r.json()).then(s => {
+  if (!s || !s.audioUrl) return;
+  show = s;
   const when = show.title.replace(/^Part \d+: /, "").replace(/, \d{4}/, "");
-  const min = Math.round(show.duration / 60);
-  $("xrPlayer").href = "/xradio/?show=" + encodeURIComponent(show.ranking) + "&play=1";
+  const full = "/xradio/?show=" + encodeURIComponent(show.ranking);
+  $("xrPlayer").href = $("xrFull").href = full;
   $("xrLabel").textContent = "Latest show: " + when;
-  $("xrHead").textContent = c.headline;
-  $("xrMeta").textContent = min + " min, " + show.stories + (show.stories === 1 ? " story" : " stories") +
-    (c.credit ? " · " + (c.site ? "From " + c.credit + " on " + c.site : "Photo: " + c.credit + " on X") : "");
-  $("xrPhoto").onload = () => { $("xrPhoto").hidden = false; };
-  $("xrPhoto").src = new URL(c.url, location.origin + "/xradio/").href;
+  $("xrHead").textContent = show.cover.headline;
+  $("xrMeta").textContent = Math.round(show.duration / 60) + " min, " + show.chapters.length + " stories" +
+    (creditOf(show.cover) ? " · " + creditOf(show.cover) : "");
+  picture(show.cover.url);
+  $("xrPlayer").onclick = e => {
+    e.preventDefault();
+    if (!audio.paused) return audio.pause();
+    if (!audio.src) audio.src = new URL(show.audioUrl, location.origin + "/xradio/").href;
+    audio.play().catch(() => { location.href = full; });
+  };
+  audio.addEventListener("timeupdate", follow);
+  audio.addEventListener("play", () => { $("xrIcon").setAttribute("d", PAUSE); $("xrPlayer").setAttribute("aria-label", "Pause"); });
+  audio.addEventListener("pause", () => { $("xrIcon").setAttribute("d", PLAY); $("xrPlayer").setAttribute("aria-label", "Play the latest XRadio show"); remember(); });
+  window.addEventListener("pagehide", remember);
 }).catch(() => {});
 </script>
 <script data-goatcounter="https://jpgapps.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
