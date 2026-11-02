@@ -25,6 +25,22 @@ header p { margin: 6px 0 0; color: var(--muted); }
 .btn { display: inline-block; padding: 9px 18px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 16px; }
 .btn.primary { background: var(--accent); color: #fff; }
 .btn.secondary { border: 1px solid var(--line); color: var(--text); }
+.player { position: relative; display: block; aspect-ratio: 16 / 9; margin: 14px 0 0; border-radius: 12px; overflow: hidden; color: #fff; text-decoration: none; background: radial-gradient(circle at 30% 30%, #17324f, #0b0f14 70%); }
+.player img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.player .scrim { position: absolute; inset: 0; background: linear-gradient(rgba(5,8,12,.6), transparent 30%, transparent 35%, rgba(5,8,12,.92) 75%); }
+.player .label { position: absolute; top: 12px; left: 16px; right: 16px; font-size: 14px; font-weight: 600; }
+.player .info { position: absolute; left: 16px; right: 16px; bottom: 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: center; }
+.player .play { grid-row: span 2; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; }
+.player .play svg { width: 30px; height: 30px; fill: #fff; }
+.player:hover .play { filter: brightness(1.15); }
+.player .head { font-size: 21px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.player .meta { font-size: 13px; color: #c4ced8; }
+@media (max-width: 520px) {
+  .player { aspect-ratio: 4 / 3; }
+  .player .play { width: 48px; height: 48px; }
+  .player .play svg { width: 24px; height: 24px; }
+  .player .head { font-size: 17px; }
+}
 .about { margin-top: 40px; }
 .about h2 { font-size: 23px; margin: 0 0 8px; }
 .about p { margin: 0 0 12px; color: var(--muted); }
@@ -43,10 +59,18 @@ footer a { color: var(--muted); }
 
 <section class="app">
 <h2>XRadio <span class="tag live">Live</span></h2>
-<p>A hands-free news radio for the car: the day's top stories, debates and culture wars from X, researched and read aloud twice a day, with photo slideshows sized for the Tesla screen.</p>
-<p>Plus daily YouTube shows (general, AI, and world conflicts): the freshest, most credible videos, checked first and played as one show with stills from each video.</p>
-<p>At a desk? Read along: every story with its fact check (confirmed, disputed or divided) and the original posts from X, plus the audio.</p>
-<p class="small">Made for the Tesla browser; works on phones and computers too.</p>
+<a class="player" id="xrPlayer" href="https://jpaulgrayson.github.io/xradio/?play=1" aria-label="Play the latest XRadio show">
+<img id="xrPhoto" alt="" hidden>
+<span class="scrim"></span>
+<span class="label" id="xrLabel">Latest show</span>
+<span class="info">
+<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+<span class="head" id="xrHead">Your news, read aloud</span>
+<span class="meta" id="xrMeta">Top stories, debates and culture wars, twice a day</span>
+</span>
+</a>
+<p>Hands-free news radio for the car. Twice a day, the top stories, debates and culture wars from X, researched and read aloud, plus daily YouTube shows on AI and world conflicts. Photos fill the Tesla screen.</p>
+<p class="small">Works on phones and computers too. At a desk, read along with each story's fact check and original posts.</p>
 <div class="buttons">
 <a class="btn primary" href="https://jpaulgrayson.github.io/xradio/">Listen now</a>
 <a class="btn secondary" href="https://jpaulgrayson.github.io/partyline/">Read along</a>
@@ -83,6 +107,22 @@ footer a { color: var(--muted); }
 <p><a class="feedback" href="https://docs.google.com/forms/d/e/1FAIpQLSd5HGBNvOHvHGdtysizhQldT6vl61pdbcIP3ju93bJpwewSTw/viewform">Send feedback</a></p>
 </footer>
 </main>
+<script>
+// The XRadio card shows the latest show's opening picture; if this fails it stays a plain play button.
+fetch("/xradio/latest.json", { cache: "no-store" }).then(r => r.json()).then(show => {
+  if (!show) return;
+  const $ = id => document.getElementById(id), c = show.cover;
+  const when = show.title.replace(/^Part \d+: /, "").replace(/, \d{4}/, "");
+  const min = Math.round(show.duration / 60);
+  $("xrPlayer").href = "/xradio/?show=" + encodeURIComponent(show.ranking) + "&play=1";
+  $("xrLabel").textContent = "Latest show: " + when;
+  $("xrHead").textContent = c.headline;
+  $("xrMeta").textContent = min + " min, " + show.stories + (show.stories === 1 ? " story" : " stories") +
+    (c.credit ? " · " + (c.site ? "From " + c.credit + " on " + c.site : "Photo: " + c.credit + " on X") : "");
+  $("xrPhoto").onload = () => { $("xrPhoto").hidden = false; };
+  $("xrPhoto").src = new URL(c.url, location.origin + "/xradio/").href;
+}).catch(() => {});
+</script>
 <script data-goatcounter="https://jpgapps.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
